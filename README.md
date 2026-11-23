@@ -20,6 +20,3 @@ Docker volumes 保存配置、运行日志和项目文件；数据库由外部 M
 
 ## 构建
 推送至 main 或手动运行 GitHub Actions 的 Docker 工作流即可构建。首次发布后需确认 GHCR 包权限和访问策略。
-
-## 私人数据
-本仓库不包含现有服务器的业务数据；私人迁移备份独立存放于私有 `StarCore_Data` 仓库。
