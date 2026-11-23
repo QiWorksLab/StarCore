@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+ROOT=/www/wwwroot/StarCore
+mkdir -p "$ROOT/data" "$ROOT/data/redis" "$ROOT/data/home" "$ROOT/data/go-cache" "$ROOT/data/go-mod" "$ROOT/projects" "$ROOT/logs" "$ROOT/var" "$ROOT/app/runtime" /run/redis
+chown www-data:www-data /run/redis
+
+if [ ! -s "$ROOT/data/config.json" ]; then
+    DB_PASS="${DB_PASS:-${DB_PASSWORD:-}}"
+    : "${DB_PASS:?Set DB_PASSWORD in the container environment}"
+    export DB_PASS
+    php -r '
+      $f=$argv[1];
+      $c=[
+        "db_host"=>getenv("DB_HOST") ?: "host.docker.internal",
+        "db_port"=>getenv("DB_PORT") ?: "3306",
+        "db_name"=>getenv("DB_NAME") ?: "StarCore_v010",
+        "db_user"=>getenv("DB_USER") ?: "starcore_app",
+        "db_pass"=>getenv("DB_PASS") ?: "",
+        "key"=>bin2hex(random_bytes(32)),
+        "redis_password"=>"",
+        "base_url"=>rtrim(getenv("STARCORE_BASE_URL") ?: "", "/")
+      ];
+      file_put_contents($f,json_encode($c,JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR),LOCK_EX);
+      chmod($f,0640);
+    ' "$ROOT/data/config.json"
+fi
+
+if [ ! -f "$ROOT/data/cli.ini" ]; then
+    cat > "$ROOT/data/cli.ini" <<'INI'
+display_errors=Off
+log_errors=On
+error_reporting=22527
+memory_limit=1024M
+max_execution_time=0
+date.timezone=Asia/Shanghai
+INI
+    chmod 0640 "$ROOT/data/cli.ini"
+fi
+
+chown -R www-data:www-data "$ROOT/data" "$ROOT/projects" "$ROOT/logs" "$ROOT/var" "$ROOT/app/runtime"
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

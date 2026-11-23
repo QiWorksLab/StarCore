@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+ROOT=/www/wwwroot/StarCore
+while [ ! -f "$ROOT/data/.bootstrap-complete" ]; do sleep 2; done
+cd "$ROOT/app"
+exec php -c "$ROOT/data/cli.ini" -d display_errors=0 "$ROOT/app/bin/daemon.php"

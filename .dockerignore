@@ -1,0 +1,15 @@
+.git
+.github
+.env
+**/.env
+**/.env.*
+!**/.env.example
+data/
+projects/
+logs/
+var/
+app/runtime/
+app/vendor/
+**/*.bak
+**/*.sql
+**/*.key

@@ -1,0 +1,25 @@
+services:
+  starcore:
+    image: ghcr.io/agent-qingjiu/starcore:latest
+    container_name: starcore
+    restart: unless-stopped
+    network_mode: host
+    env_file: [.env]
+    environment:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_NAME: StarCore
+      DB_USER: StarCore
+      STARCORE_BASE_URL: http://127.0.0.1:18081
+    volumes:
+      - starcore_data:/www/wwwroot/StarCore/data
+      - starcore_projects:/www/wwwroot/StarCore/projects
+      - starcore_logs:/www/wwwroot/StarCore/logs
+      - starcore_var:/www/wwwroot/StarCore/var
+      - starcore_runtime:/www/wwwroot/StarCore/app/runtime
+volumes:
+  starcore_data:
+  starcore_projects:
+  starcore_logs:
+  starcore_var:
+  starcore_runtime:

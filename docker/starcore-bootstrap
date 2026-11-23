@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+ROOT=/www/wwwroot/StarCore
+echo "[StarCore] Waiting for internal Redis and host MySQL..."
+i=0
+until redis-cli -h 127.0.0.1 -p 6380 ping >/dev/null 2>&1; do
+    i=$((i+1)); [ "$i" -lt 120 ] || exit 1
+    sleep 2
+done
+
+i=0
+until php -r '
+  $c=json_decode(file_get_contents("/www/wwwroot/StarCore/data/config.json"),true);
+  try { new PDO("mysql:host=".$c["db_host"].";port=".($c["db_port"]??3306).";dbname=".$c["db_name"].";charset=utf8mb4",$c["db_user"],$c["db_pass"],[PDO::ATTR_TIMEOUT=>3]); exit(0); }
+  catch(Throwable $e) { exit(1); }
+' >/dev/null 2>&1; do
+    i=$((i+1)); [ "$i" -lt 120 ] || { echo "[StarCore] MySQL connection failed; check DB_HOST/DB_USER/DB_PASS and host grants."; exit 1; }
+    sleep 2
+done
+
+if [ ! -f "$ROOT/data/.bootstrap-complete" ]; then
+    echo "[StarCore] Creating SC_ database tables and initial administrator..."
+    php -c "$ROOT/data/cli.ini" "$ROOT/app/bin/init.php"
+    touch "$ROOT/data/.bootstrap-complete"
+    chown www-data:www-data "$ROOT/data/.bootstrap-complete"
+fi
+echo "[StarCore] Bootstrap complete."

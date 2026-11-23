@@ -1,0 +1,16 @@
+/data/
+/logs/
+/projects/
+/.user.ini
+/app/.env
+/app/runtime/
+/app/vendor/
+/app/public/.user.ini
+/app/public/qa-*
+/app/bin/ui-preview.py
+/setup.py
+/deploy.py
+/patch.py
+/refine.py
+/async-patch.py
+/finalize.py
