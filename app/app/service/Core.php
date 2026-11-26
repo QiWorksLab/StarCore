@@ -85,7 +85,7 @@ class Core {
  static function runtimeOptions():array{
   if(PHP_SAPI!=='cli')return self::setting('runtimes',['php'=>[],'python'=>[],'go'=>[]]);
   $r=['php'=>[],'python'=>[],'go'=>[]];foreach(glob('/www/server/php/*/bin/php') as $x)$r['php'][]=$x;
-  foreach(['/usr/bin/php','/usr/bin/python3','/usr/local/bin/python3','/usr/local/go/bin/go','/usr/bin/go'] as $x)if(is_executable($x)){foreach(['php','python','go'] as $l)if(str_contains(basename($x),$l))$r[$l][]=$x;}
+  foreach(['/usr/local/bin/php','/usr/bin/php','/usr/bin/python3','/usr/local/bin/python3','/usr/local/go/bin/go','/usr/bin/go'] as $x)if(is_executable($x)){foreach(['php','python','go'] as $l)if(str_contains(basename($x),$l))$r[$l][]=$x;}
   return $r;
  }
 }
