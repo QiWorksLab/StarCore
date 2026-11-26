@@ -18,7 +18,7 @@ class Core {
  static function json($v):string{return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
  static function crypt(string $v):string{$iv=random_bytes(12);$ct=openssl_encrypt($v,'aes-256-gcm',hex2bin(self::conf()['key']),OPENSSL_RAW_DATA,$iv,$tag);return base64_encode($iv.$tag.$ct);}
  static function decrypt(string $v):string{$v=base64_decode($v,true);$r=openssl_decrypt(substr($v,28),'aes-256-gcm',hex2bin(self::conf()['key']),OPENSSL_RAW_DATA,substr($v,0,12),substr($v,12,16));if($r===false)throw new RuntimeException('凭据解密失败');return $r;}
- static function redis():\Redis{$r=new \Redis();$r->connect('127.0.0.1',6379,2);$p=self::conf()['redis_password'];if($p)$r->auth($p);$r->select(1);return $r;}
+ static function redis():\Redis{$r=new \Redis();$r->connect('127.0.0.1',(int)(getenv('REDIS_PORT') ?: 6380),2);$p=self::conf()['redis_password'];if($p)$r->auth($p);$r->select(1);return $r;}
  static function bot(int $id):array{$b=self::one('SELECT * FROM bots WHERE id=?',[$id]);if(!$b)throw new RuntimeException('机器人不存在');$b['config']=json_decode($b['config'],true);$b['meta']=json_decode($b['meta'],true);return $b;}
  static function project(int $id):array{$p=self::one('SELECT * FROM projects WHERE id=?',[$id]);if(!$p)throw new RuntimeException('项目不存在');$p['config']=json_decode($p['config'],true);return $p;}
  static function publicBot(array $b):array{unset($b['token'],$b['hook_key']);$b['config']=is_array($b['config'])?$b['config']:json_decode($b['config'],true);$b['meta']=is_array($b['meta'])?$b['meta']:json_decode($b['meta'],true);unset($b['config']['secret_token']);return $b;}
