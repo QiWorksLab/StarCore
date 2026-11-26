@@ -7,6 +7,7 @@ RUN cd app && composer install --no-dev --prefer-dist --no-interaction --optimiz
 COPY docker/starcore.conf /etc/nginx/conf.d/starcore.conf
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY docker/redis.conf /etc/redis/redis.conf
+RUN chown root:www-data /etc/redis /etc/redis/redis.conf && chmod 750 /etc/redis && chmod 640 /etc/redis/redis.conf
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/starcore-entrypoint docker/starcore-bootstrap docker/starcore-daemon /usr/local/bin/
 RUN chmod +x /usr/local/bin/starcore-entrypoint /usr/local/bin/starcore-bootstrap /usr/local/bin/starcore-daemon
