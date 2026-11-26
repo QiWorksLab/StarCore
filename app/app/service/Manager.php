@@ -89,7 +89,7 @@ class Manager {
    if($site&&!is_dir($depbase.'/site-packages'))Core::copyTree($site,$depbase.'/site-packages');
    $this->runCommand([$dir.'/.venv/bin/python','-m','py_compile',$entry],$dir,30);
   }elseif($lang==='php'){
-   $this->runCommand([$rt,'-l',$entry],$dir,30);if(is_dir($depbase.'/vendor'))Core::copyTree($depbase.'/vendor',$dir.'/vendor');elseif(is_file($dir.'/composer.json')){$this->runCommand([$rt,'-d','error_reporting=22527','/usr/bin/composer','install','--no-interaction','--prefer-dist','--no-dev'],$dir);if(is_dir($dir.'/vendor'))Core::copyTree($dir.'/vendor',$depbase.'/vendor');}
+   $this->runCommand([$rt,'-l',$entry],$dir,30);if(is_dir($depbase.'/vendor'))Core::copyTree($depbase.'/vendor',$dir.'/vendor');elseif(is_file($dir.'/composer.json')){$this->runCommand([$rt,'-d','error_reporting=22527',(is_file('/usr/local/bin/composer')?'/usr/local/bin/composer':'/usr/bin/composer'),'install','--no-interaction','--prefer-dist','--no-dev'],$dir);if(is_dir($dir.'/vendor'))Core::copyTree($dir.'/vendor',$depbase.'/vendor');}
   }elseif($lang==='go'){
    if(is_file($dir.'/go.mod')){$this->runCommand([$rt,'mod','download'],$dir);$this->runCommand([$rt,'build','-o',$dir.'/.starcore-bot','.'],$dir);}
    else $this->runCommand([$rt,'build','-o',$dir.'/.starcore-bot',$entry],$dir);
