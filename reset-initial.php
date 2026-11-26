@@ -61,7 +61,7 @@ try{
  $canReset=false;$quoted=chr(96).'StarCore'.chr(96).'.*';
  foreach($grants as $g)if(str_contains($g,'ALL PRIVILEGES')&&(str_contains($g,'*.*')||str_contains($g,$quoted)||str_contains($g,'StarCore.*')))$canReset=true;
  if(!$canReset)throw new RuntimeException('数据库账号缺少完整重建权限');
- $redis=new Redis();$redis->connect('127.0.0.1',6379,3);if($cfg['redis_password'])$redis->auth($cfg['redis_password']);$redis->select(7);$redis->ping();
+ $redis=new Redis();$redis->connect('127.0.0.1',(int)(getenv('REDIS_PORT') ?: 6380),3);if($cfg['redis_password'])$redis->auth($cfg['redis_password']);$redis->select(7);$redis->ping();
  $vhosts=[];
  foreach(glob('/www/server/panel/vhost/nginx/*.conf') as $file){
   if(preg_match('#^\s*root\s+/www/wwwroot/StarCore(?:/app/public)?;#m',file_get_contents($file)))$vhosts[]=$file;
