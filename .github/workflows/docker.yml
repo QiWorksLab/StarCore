@@ -23,4 +23,6 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/agent-qingjiu/starcore:latest
+          tags: ghcr.io/qiworkslab/starcore:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
