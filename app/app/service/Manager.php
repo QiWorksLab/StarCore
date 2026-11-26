@@ -15,7 +15,7 @@ class Manager {
   if($reset)Core::sql('UPDATE bots SET failures=0 WHERE id=?',[$id]);
   $d=Core::BASE.'/logs/'.$id;if(!is_dir($d))mkdir($d,0750,true);
   Core::redis()->del('sc:ready:'.$id,'sc:child:'.$id);
-  $proc=proc_open(['/www/server/php/84/bin/php','-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/runner.php',(string)$id],[0=>['file','/dev/null','r'],1=>['file',$d.'/stdout.log','a'],2=>['file',$d.'/stderr.log','a']],$pipes,Core::BASE.'/app');
+  $proc=proc_open([PHP_BINARY,'-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/runner.php',(string)$id],[0=>['file','/dev/null','r'],1=>['file',$d.'/stdout.log','a'],2=>['file',$d.'/stderr.log','a']],$pipes,Core::BASE.'/app');
   if(!is_resource($proc))throw new RuntimeException('启动进程失败');$status=proc_get_status($proc);$this->processes[$id]=['proc'=>$proc,'pid'=>$status['pid'],'start'=>time(),'healthy'=>false];
   Core::sql("UPDATE bots SET state='starting',pid=?,started_at=NOW(),last_error=NULL WHERE id=?",[$status['pid'],$id]);$this->writeLog($id,'启动 PID '.$status['pid']);
  }
@@ -174,12 +174,12 @@ class Manager {
      if(in_array($job['type'],['sync','profile','photo','mode','token'],true)){
       $v=json_decode($job['payload'],true);$bid=(int)$v['id'];$resume=false;
       if(in_array($job['type'],['mode','token'],true)){$bot=Core::bot($bid);$resume=$bot['desired']==='running';$this->stop($bid);}
-      $proc=proc_open(['/www/server/php/84/bin/php','-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/job-worker.php',(string)$job['id']],[0=>['file','/dev/null','r'],1=>['file','/dev/null','a'],2=>['file',Core::BASE.'/logs/worker-error.log','a']],$pipes);
+      $proc=proc_open([PHP_BINARY,'-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/job-worker.php',(string)$job['id']],[0=>['file','/dev/null','r'],1=>['file','/dev/null','a'],2=>['file',Core::BASE.'/logs/worker-error.log','a']],$pipes);
       $this->tasks[$job['id']]=['proc'=>$proc,'bot'=>$bid,'resume'=>$resume];
      }else try{$this->command($job);Core::sql("UPDATE jobs SET state='success',result='完成',payload='{}',finished_at=NOW() WHERE id=?",[$job['id']]);}catch(\Throwable $e){Core::sql("UPDATE jobs SET state='failed',result=?,payload='{}',finished_at=NOW() WHERE id=?",[$e->getMessage(),$job['id']]);}}
     $rel=Core::one("SELECT * FROM releases WHERE state='pending' AND due_at<=NOW() ORDER BY due_at,id LIMIT 1");if($rel&&!$this->tasks)$this->publish($rel);
     foreach(Core::rows('SELECT id FROM bots') as $b){$id=(int)$b['id'];if(isset($this->sync[$id]['proc'])){$s=proc_get_status($this->sync[$id]['proc']);if(!$s['running']){proc_close($this->sync[$id]['proc']);$this->sync[$id]=['at'=>time()];}}
-     if(!isset($this->sync[$id]['proc'])&&time()-($this->sync[$id]['at']??0)>=5){$proc=proc_open(['/www/server/php/84/bin/php','-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/sync.php',(string)$id],[0=>['file','/dev/null','r'],1=>['file','/dev/null','a'],2=>['file',Core::BASE.'/logs/sync.log','a']],$pipes);$this->sync[$id]=['proc'=>$proc,'at'=>time()];}}
+     if(!isset($this->sync[$id]['proc'])&&time()-($this->sync[$id]['at']??0)>=5){$proc=proc_open([PHP_BINARY,'-c',Core::BASE.'/data/cli.ini','-d','display_errors=0',Core::BASE.'/app/bin/sync.php',(string)$id],[0=>['file','/dev/null','r'],1=>['file','/dev/null','a'],2=>['file',Core::BASE.'/logs/sync.log','a']],$pipes);$this->sync[$id]=['proc'=>$proc,'at'=>time()];}}
    }catch(\Throwable $e){fwrite(STDERR,date('c').' '.$e->getMessage()."\n");}
    usleep(200000);
   }
